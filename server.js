@@ -9,7 +9,7 @@ var cron = require("node-cron");
 
 var cors = require("cors");
 const app = express();
-//app.use(cors())
+//n
 const path = require("path");
 // Bodyparser 
 
