@@ -46,10 +46,10 @@ app.listen(port, () => console.log(`Server up and running on port ${port} !`));
 // cron.schedule("* * * * *", () => {
 //   console.log("running a task every minute");
 // });
-var currr = 1;
-cron.schedule("* * * * *", () => {
-  console.log("running a task every minute", currr++);
-  axios.get("https://claimyouraid.herokuapp.com/api/plaid/makealert").then((res) => {
-    console.log(res);
-  });
-});
+// var currr = 1;
+// cron.schedule("* * * * *", () => {
+//   console.log("running a task every minute", currr++);
+//   axios.get("https://claimyouraid.herokuapp.com/api/plaid/makealert").then((res) => {
+//     console.log(res);
+//   });
+// });
