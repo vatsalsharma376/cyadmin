@@ -7,7 +7,9 @@ const users = require("./routes/api/users");
 const plaid = require("./routes/api/plaid.tsx");
 var cron = require("node-cron");
 const app = express();
+var cors = require('cors')
 
+app.use(cors())
 const path = require("path");
 // Bodyparser 
 
@@ -49,7 +51,7 @@ app.listen(port, () => console.log(`Server up and running on port ${port} !`));
 var currr = 1;
 cron.schedule("* * * * *", () => {
   console.log("running a task every minute", currr++);
-  axios.get("https://localhost:5006/api/plaid/makealert").then((res) => {
+  axios.get("https://claimyouraid.herokuapp.com/api/plaid/makealert").then((res) => {
     console.log(res);
   });
 });
