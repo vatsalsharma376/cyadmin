@@ -7,9 +7,9 @@ const users = require("./routes/api/users");
 const plaid = require("./routes/api/plaid.tsx");
 var cron = require("node-cron");
 
-var cors = require('cors')
+//var cors = require('cors')
 const app = express();
-app.use(cors())
+//app.use(cors())
 const path = require("path");
 // Bodyparser 
 
