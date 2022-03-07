@@ -40,7 +40,7 @@ var PUBLIC_TOKEN = null;
 var ACCESS_TOKEN = null;
 var ITEM_ID = null;
 const accountSid = "ACd092381d0c8cc04422e65e019416b32f";
-const authToken = "05ef855841167757b72f25dcf93c0131";
+const authToken = "a82a9ea388a9d1b7143736789d29c31e";
 const twclient = require("twilio")(accountSid, authToken);
 // @route GET api/plaid/accounts
 // @desc Get all accounts linked with plaid for a specific user
