@@ -9,6 +9,7 @@ const router = express.Router();
 const passport = require("passport");
 const moment = require("moment");
 const http = require("http");
+const cron = require("node-cron");
 const MongoClient = require("mongodb").MongoClient;
 const { Configuration, PlaidApi, PlaidEnvironments } = require("plaid");
 // import fetch from "node-fetch";
@@ -272,10 +273,10 @@ router.get("/makealert", async (req, res) => {
             alert[ind].lasttxndone === undefined ? 0 : alert[ind].lasttxndone;
           //const thirtyDaysAgo = now.subtract(2, "days").format("YYYY-MM-DD");
           // const OFFSET = 0;
-          var NEWOFFSET=0;
+          var NEWOFFSET = 0;
           const txnreq = {
             access_token: curAccessToken,
-            start_date: "2022-03-05",
+            start_date: "2022-03-06",
             end_date: today,
           };
           client
@@ -354,7 +355,14 @@ router.get("/makealert", async (req, res) => {
           var prevAlert = alert[ind];
           prevAlert.lasttxndone = NEWOFFSET;
           prevAlert.lasttxn = today;
-          alertcoll.remove({ accessToken: curAccessToken });
+          alertcoll
+            .remove({ accessToken: curAccessToken })
+            .then((response) => {
+              console.log(response);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
 
           const newAlert = new Alerts(prevAlert);
           newAlert
@@ -363,7 +371,143 @@ router.get("/makealert", async (req, res) => {
               console.log("Successfully updated alert");
             })
             .catch((error) => {
-              console.log("Error updating alert",error);
+              console.log("Error updating alert", error);
+            });
+        }
+      });
+  } catch (err) {
+    console.error("Failed to make alerts in database", err);
+  }
+});
+
+cron.schedule("* * * * *", async () => {
+  try {
+    let mongoClient = await connectToCluster(userURI);
+    db1 = mongoClient.db("Cluster1");
+    alertcoll = db1.collection("alerts");
+    alertcoll
+      .find()
+      .toArray()
+      .then((alert) => {
+        //console.log(alert);
+        // now here we have an array of alerts and we have to perform the twilio things for each of them
+        const now = moment();
+        const today = now.format("YYYY-MM-DD");
+        for (var ind = 0; ind < alert.length; ind++) {
+          const curAccessToken = alert[ind].accessToken;
+          const AMOUNT = alert[ind].amount;
+          const MSG = alert[ind].message;
+          const EMAIL = alert[ind].email;
+          const CELL = alert[ind].cell;
+          const FNAME = alert[ind].fname;
+          const CLIENTNAME = alert[ind].clientname;
+          var TXTBODY = alert[ind].fullTXTmessage;
+          var MLBODY = alert[ind].fullMLmessage;
+          console.log(curAccessToken, alert[ind].lasttxn);
+          //console.log(TXTBODY, MLBODY);
+          const OFFSET =
+            alert[ind].lasttxndone === undefined ? 0 : alert[ind].lasttxndone;
+          //const thirtyDaysAgo = now.subtract(2, "days").format("YYYY-MM-DD");
+          // const OFFSET = 0;
+          var NEWOFFSET = 0;
+          const txnreq = {
+            access_token: curAccessToken,
+            start_date: "2022-03-06",
+            end_date: today,
+          };
+          client
+            .transactionsGet(txnreq)
+            .then((response) => {
+              const transactions = response.data.transactions;
+              //console.log(response.data);
+              //console.log(transactions.length);
+              for (
+                var counter = transactions.length - 1 - OFFSET;
+                counter >= 0;
+                counter--
+              ) {
+                var transaction = transactions[counter];
+                if (today == transaction.date) ++NEWOFFSET;
+                //console.log(transaction.amount);
+                TXTBODY = TXTBODY.replace("<<Deposit Date>>", transaction.date);
+                TXTBODY = TXTBODY.replace(
+                  "<<Deposit Amount>>",
+                  transaction.amount
+                );
+                TXTBODY = TXTBODY.replace(
+                  "<<Deposit Description>>",
+                  transaction.name
+                );
+                MLBODY = MLBODY.replace("<<Deposit Date>>", transaction.date);
+                MLBODY = MLBODY.replace(
+                  "<<Deposit Amount>>",
+                  transaction.amount
+                );
+                MLBODY = MLBODY.replace(
+                  "<<Deposit Description>>",
+                  transaction.name
+                );
+                console.log(TXTBODY, MLBODY);
+                console.log(
+                  transaction.name,
+                  transaction.date,
+                  transaction.amount
+                );
+                if (
+                  Math.abs(transaction.amount) >= AMOUNT ||
+                  transaction.name.indexOf(MSG) != -1
+                ) {
+                  if (CELL !== undefined) {
+                    twclient.messages
+                      .create({
+                        body: TXTBODY,
+                        from: "+13515298183",
+                        to: CELL,
+                      })
+                      .then((message) => console.log(message.sid))
+                      .catch((err) => console.log("Twilio error here", err));
+                  }
+                  if (EMAIL !== undefined) {
+                    const msg = {
+                      to: EMAIL, // Change to your recipient
+                      from: "claimyouraids@gmail.com", // Change to your verified sender
+                      subject: "Alert: New transaction recieved",
+                      text: MLBODY,
+                    };
+                    sgMail
+                      .send(msg)
+                      .then((response) => {
+                        console.log(response[0].statusCode);
+                      })
+                      .catch((error) => {
+                        console.error(error.response.body.errors[0]);
+                      });
+                  }
+                }
+              }
+            })
+            .catch((err) => console.log("Transactions fetching error: ", err));
+          // update the alert after sending current alerts
+          var prevAlert = alert[ind];
+          prevAlert.lasttxndone = NEWOFFSET;
+          prevAlert.lasttxn = today;
+          alertcoll
+            .remove({ accessToken: curAccessToken })
+            .then((response) => {
+              console.log(response);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+
+          const newAlert = new Alerts(prevAlert);
+          newAlert
+            .save()
+            .then((response) => {
+              console.log("Successfully updated alert");
+            })
+            .catch((error) => {
+              console.log("Error updating alert", error);
             });
         }
       });
