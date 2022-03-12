@@ -7,7 +7,6 @@ const users = require("./routes/api/users");
 const plaid = require("./routes/api/plaid.tsx");
 var cron = require("node-cron");
 
-var cors = require("cors");
 const app = express();
 //nii
 const path = require("path");
