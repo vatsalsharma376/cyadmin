@@ -92,7 +92,7 @@ router.post("/login", (req, res) => {
     if (!user) {
       return res.status(404).json({ emailnotfound: "Email not found" });
     }
-
+    console.log(user);
     // Check password
     bcrypt.compare(password, user.password).then((isMatch) => {
       if (isMatch) {
@@ -114,6 +114,8 @@ router.post("/login", (req, res) => {
             res.json({
               success: true,
               token: "Bearer " + token,
+              cell: user.cell,
+              fname: user.fname,
             });
           }
         );
