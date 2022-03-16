@@ -18,6 +18,8 @@ const Account = require("../../models/Account");
 const User = require("../../models/User");
 const Alerts = require("../../models/Alerts");
 const sgMail = require("@sendgrid/mail");
+require('dotenv').config()
+//console.log(process.env);
 sgMail.setApiKey(
   "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"
 );
@@ -40,7 +42,7 @@ var PUBLIC_TOKEN = null;
 var ACCESS_TOKEN = null;
 var ITEM_ID = null;
 const accountSid = "ACd092381d0c8cc04422e65e019416b32f";
-const authToken = "fda9622b9d91f2fc4aeee93b5126bcef";
+const authToken = process.env.TWILIOAUTHTOKEN;
 const twclient = require("twilio")(accountSid, authToken);
 // @route GET api/plaid/accounts
 // @desc Get all accounts linked with plaid for a specific user
