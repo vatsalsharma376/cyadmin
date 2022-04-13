@@ -27,7 +27,7 @@ sgMail.setApiKey(
 const userURI =
   "mongodb+srv://claimyouraid:cya@cluster0.kfgzq.mongodb.net/?retryWrites=true&w=majority";
 const configuration = new Configuration({
-  basePath: PlaidEnvironments["sandbox"],
+  basePath: PlaidEnvironments["development"],
   baseOptions: {
     headers: {
       "PLAID-CLIENT-ID": "6166d89a162e690010d7084b",
