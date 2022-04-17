@@ -276,7 +276,7 @@ cron.schedule("* * * * *", async () => {
           var NEWOFFSET = 0;
           const txnreq = {
             access_token: curAccessToken,
-            start_date: "2022-03-06",
+            start_date: "2022-04-15",
             end_date: today,
           };
           client
@@ -325,7 +325,7 @@ cron.schedule("* * * * *", async () => {
                     twclient.messages
                       .create({
                         body: TXTBODY,
-                        from: "+13515298183",
+                        from: "+13206264617",
                         to: CELL,
                       })
                       .then((message) => console.log(message.sid))
