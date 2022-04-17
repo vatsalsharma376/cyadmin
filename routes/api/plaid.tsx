@@ -30,8 +30,8 @@ const configuration = new Configuration({
   basePath: PlaidEnvironments["development"],
   baseOptions: {
     headers: {
-      "PLAID-CLIENT-ID": "6166d89a162e690010d7084b",
-      "PLAID-SECRET": "9097d5e53b34172035a9cbf66e1047",
+      "PLAID-CLIENT-ID": process.env.CLIENTID,
+      "PLAID-SECRET": process.env.SECRET,
     },
   },
 });
@@ -41,8 +41,8 @@ const client = new PlaidApi(configuration);
 var PUBLIC_TOKEN = null;
 var ACCESS_TOKEN = null;
 var ITEM_ID = null;
-const accountSid = "ACd092381d0c8cc04422e65e019416b32f";
-const authToken = process.env.TWILIOAUTHTOKEN;
+const accountSid = process.env.SID;
+const authToken = process.env.AUTH_TOKEN;
 const twclient = require("twilio")(accountSid, authToken);
 // @route GET api/plaid/accounts
 // @desc Get all accounts linked with plaid for a specific user
