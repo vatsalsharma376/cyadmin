@@ -6,19 +6,17 @@ const axios = require("axios");
 const users = require("./routes/api/users");
 const plaid = require("./routes/api/plaid.tsx");
 var cron = require("node-cron");
-
 const app = express();
-//nii
-const path = require("path");
-// Bodyparser 
 
-app.use ( express.static("client/build"));
+const path = require("path");
+// Bodyparser middleware
 app.use(
   bodyParser.urlencoded({
     extended: false,
   })
 );
 app.use(bodyParser.json());
+
 // DB Config
 const db = require("./config/keys").mongoURI;
 
@@ -38,10 +36,7 @@ require("./config/passport")(passport);
 app.use("/api/users", users);
 app.use("/api/plaid", plaid);
 
-const port = process.env.PORT || 5006;
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
-});
+const port = 5006;
 
 app.listen(port, () => console.log(`Server up and running on port ${port} !`));
 // cron.schedule("* * * * *", () => {
@@ -50,7 +45,7 @@ app.listen(port, () => console.log(`Server up and running on port ${port} !`));
 // var currr = 1;
 // cron.schedule("* * * * *", () => {
 //   console.log("running a task every minute", currr++);
-//   axios.get("https://claimyouraid.herokuapp.com/api/plaid/makealert").then((res) => {
+//   axios.get("http://localhost:5006/api/plaid/makealert").then((res) => {
 //     console.log(res);
 //   });
 // });
