@@ -28,11 +28,11 @@ sgMail.setApiKey(
 const userURI =
   "mongodb+srv://claimyouraid:cya@cluster0.kfgzq.mongodb.net/?retryWrites=true&w=majority";
 const configuration = new Configuration({
-  basePath: PlaidEnvironments["sandbox"],
+  basePath: PlaidEnvironments[process.env.type],
   baseOptions: {
     headers: {
-      "PLAID-CLIENT-ID": "624b9f9f9f9f9f9f",
-      "PLAID-SECRET": "da65b9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f",
+      "PLAID-CLIENT-ID": process.env.CLIENTID,
+      "PLAID-SECRET": process.env.SECRET,
     },
   },
 });
@@ -42,8 +42,8 @@ const client = new PlaidApi(configuration);
 var PUBLIC_TOKEN = null;
 var ACCESS_TOKEN = null;
 var ITEM_ID = null;
-const accountSid = "AC99";
-const authToken = "9754d8f8-d9c0-4b5f-b8d7-b8f8f8f8f8f8";
+const accountSid = process.env.SID;
+const authToken = process.env.AUTH_TOKEN;
 const twclient = require("twilio")(accountSid, authToken);
 // @route GET api/plaid/accounts
 // @desc Get all accounts linked with plaid for a specific user
