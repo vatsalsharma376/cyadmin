@@ -9,6 +9,8 @@ var cron = require("node-cron");
 const app = express();
 
 const path = require("path");
+
+app.use ( express.static("client/build"));
 // Bodyparser middleware
 app.use(
   bodyParser.urlencoded({
@@ -37,7 +39,9 @@ app.use("/api/users", users);
 app.use("/api/plaid", plaid);
 
 const port = process.env.PORT || 5006;
-
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+});
 app.listen(port, () => console.log(`Server up and running on port ${port} !`));
 // cron.schedule("* * * * *", () => {
 //   console.log("running a task every minute");
