@@ -36,7 +36,7 @@ require("./config/passport")(passport);
 app.use("/api/users", users);
 app.use("/api/plaid", plaid);
 
-const port = 5006;
+const port = process.env.PORT || 5006;
 
 app.listen(port, () => console.log(`Server up and running on port ${port} !`));
 // cron.schedule("* * * * *", () => {
