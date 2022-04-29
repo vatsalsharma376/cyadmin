@@ -150,6 +150,9 @@ router.post(
           access_token: ACCESS_TOKEN,
           start_date: "2021-01-01",
           end_date: today,
+          options: {
+            count: 500,
+          },
         };
         client
           .transactionsGet(txnreq)
