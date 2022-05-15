@@ -36,7 +36,6 @@ const configuration = new Configuration({
     },
   },
 });
-
 const client = new PlaidApi(configuration);
 
 var PUBLIC_TOKEN = null;
@@ -136,7 +135,7 @@ router.post(
   (req, res) => {
     const now = moment();
     const today = now.format("YYYY-MM-DD");
-    const twoYearsAgo = now.subtract(2, "years").format("YYYY-MM-DD");
+    const thirtyDaysAgo = now.subtract(30, "days").format("YYYY-MM-DD");
 
     let transactions = [];
 
@@ -148,11 +147,8 @@ router.post(
         const institutionName = account.institutionName;
         const txnreq = {
           access_token: ACCESS_TOKEN,
-          start_date: twoYearsAgo,
+          start_date: thirtyDaysAgo,
           end_date: today,
-          options: {
-            count: 500,
-          },
         };
         client
           .transactionsGet(txnreq)
@@ -230,6 +226,54 @@ router.get("/banknames", async (req, res) => {
     console.error("Failed to get names from MongoDB Atlas", err);
   }
 });
+
+router.post(
+  "/accounts/transactions/import",
+
+  async (req, res) => {
+    //console.log(req.body);
+    const mongoClient = await connectToCluster(userURI);
+    const db = await mongoClient.db("Cluster0");
+    const txncoll = await db.collection("transactions");
+
+    const now = moment();
+    const today = now.format("YYYY-MM-DD");
+    const twoYearsAgo = now.subtract(2, "years").format("YYYY-MM-DD");
+
+    const txnreq = {
+      access_token: req.body.accessTkn,
+      start_date: twoYearsAgo,
+      end_date: today,
+      options: {
+        count: 500,
+      },
+    };
+    var alltxn = [];
+    client
+      .transactionsGet(txnreq)
+      .then((response) => {
+        //console.log(response); response.data.transactions = an array of transaction objects
+        let transaction1 = response.data.transactions;
+        for (var i = 0; i < transaction1.length; i++) {
+          const curTxn = {
+            accountId: req.body.accId,
+            accessToken: req.body.accessTkn,
+            accountname: req.body.acName,
+            name: transaction1[i].name,
+            amount: transaction1[i].amount,
+            txndate: transaction1[i].date,
+            category: transaction1[i].category[0],
+          };
+          try {
+            txncoll.update(curTxn, { $set: curTxn }, { upsert: true });
+          } catch (err) {
+            console.log(err);
+          }
+        }
+      })
+      .catch((err) => console.log(err));
+  }
+);
 
 // @route POST api/plaid/add
 // @desc Add all alerts to the database which will be monitored
