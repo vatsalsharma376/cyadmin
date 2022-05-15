@@ -136,7 +136,7 @@ router.post(
     const now = moment();
     const today = now.format("YYYY-MM-DD");
     const thirtyDaysAgo = now.subtract(30, "days").format("YYYY-MM-DD");
-
+    const twoYearsAgo = now.subtract(2, "years").format("YYYY-MM-DD");
     let transactions = [];
 
     const accounts = req.body;
@@ -147,8 +147,11 @@ router.post(
         const institutionName = account.institutionName;
         const txnreq = {
           access_token: ACCESS_TOKEN,
-          start_date: thirtyDaysAgo,
-          end_date: today,
+          start_date: twoYearsAgo,
+      end_date: today,
+      options: {
+        count: 500,
+      },
         };
         client
           .transactionsGet(txnreq)
