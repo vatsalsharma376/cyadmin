@@ -414,7 +414,7 @@ cron.schedule("* * * * *", async () => {
                     }
                     // add the new transactions to the database
                     const newTxn = {
-                      userId: recentTxn.userId,
+                      
                       accountId: recentTxn.accountId,
                       accessToken: recentTxn.accessToken,
                       name: transaction.name,
@@ -423,7 +423,7 @@ cron.schedule("* * * * *", async () => {
                       accountname: recentTxn.accountname,
                       category: transaction.category[0],
                     };
-                    txncoll.insertOne(newTxn);
+                    txncoll.update(newTxn, { $set: newTxn }, { upsert: true });
                   }
                 })
                 .catch((err) =>
