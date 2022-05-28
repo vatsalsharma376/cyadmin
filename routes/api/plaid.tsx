@@ -334,7 +334,7 @@ cron.schedule("* * * * *", async () => {
                 start_date: recentTxn.txndate,
                 end_date: today,
               };
-              console.log(curAccessToken);
+              //console.log(recentTxn);
               client
                 .transactionsGet(txnreq)
                 .then((response) => {
@@ -355,6 +355,8 @@ cron.schedule("* * * * *", async () => {
                       break; // if we encounter previously seen transaction then we break out of the loop
                     }
                     var transaction = transactions[counter];
+                    console.log(recentTxn,transaction);
+                    console.log("E N D");
                     //console.log(transaction);
                     //console.log(transaction.amount);
                     curTXTBODY = curTXTBODY.replace(
