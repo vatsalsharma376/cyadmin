@@ -255,10 +255,12 @@ router.post(
     client
       .transactionsGet(txnreq)
       .then((response) => {
+      	var alltranx = [];
         //console.log(response); response.data.transactions = an array of transaction objects
         let transaction1 = response.data.transactions;
         for (var i = 0; i < transaction1.length; i++) {
           const curTxn = {
+          	_id: transaction1[i].transaction_id,
             accountId: req.body.accId,
             accessToken: req.body.accessTkn,
             accountname: req.body.acName,
@@ -267,12 +269,21 @@ router.post(
             txndate: transaction1[i].date,
             category: transaction1[i].category[0],
           };
-          try {
-            txncoll.update(curTxn, { $set: curTxn }, { upsert: true });
-          } catch (err) {
-            console.log(err);
-          }
+          alltranx.push(curTxn);
+          // try {
+          //   txncoll.update(curTxn, { $set: curTxn }, { upsert: true });
+          // } catch (err) {
+          //   console.log(err);
+          // }
         }
+        // bulk insert all transactions at once
+        try{
+        	txncoll.insertMany(alltranx);
+        }
+        catch(err){
+        	console.log(err.message);
+        }
+
       })
       .catch((err) => console.log(err));
   }
@@ -310,7 +321,10 @@ cron.schedule("* * * * *", async () => {
         // now here we have an array of alerts and we have to perform the twilio things for each of them
         const now = moment();
         const today = now.format("YYYY-MM-DD");
+
         for (var ind = 0; ind < alert.length; ind++) {
+          var prevCount = -1;
+
           const curAccessToken = alert[ind].accessToken;
           const AMOUNT = alert[ind].amount;
           const MSG = alert[ind].message;
@@ -324,10 +338,11 @@ cron.schedule("* * * * *", async () => {
           // get the recent transaction and then check if there is any newer transaction
           txncoll
             .find({ accessToken: curAccessToken })
-            .limit(1)
             .sort({ txndate: -1 })
+            .limit(50) // may have to change this limit if dailys txn>50
             .toArray()
             .then((rtxn) => {
+            	// rtxn contains transactions sorted by date
               recentTxn = rtxn[0];
               const txnreq = {
                 access_token: curAccessToken,
@@ -348,13 +363,21 @@ cron.schedule("* * * * *", async () => {
                   ) {
                     var curTXTBODY = TXTBODY;
                     var curMLBODY = MLBODY;
-                    if (
-                      transactions[counter].name === recentTxn.name &&
-                      transactions[counter].amount === recentTxn.amount
-                    ) {
-                      break; // if we encounter previously seen transaction then we break out of the loop
-                    }
                     var transaction = transactions[counter];
+                    
+
+                    // here we have to make a check if the transactions[counter] has already been seen before
+                    var alreadySeen = false;
+                    for(var cnt = 0;cnt<40;cnt++){
+                    	if(rtxn[cnt]._id===transaction.transaction_id){
+
+                    		alreadySeen = true;
+                    		break;
+                    	}
+                    }
+                    if(alreadySeen) break;
+
+
                     console.log(recentTxn,transaction);
                     console.log("E N D");
                     //console.log(transaction);
@@ -419,7 +442,7 @@ cron.schedule("* * * * *", async () => {
                     }
                     // add the new transactions to the database
                     const newTxn = {
-                      
+                      _id: transaction.transaction_id,
                       accountId: recentTxn.accountId,
                       accessToken: recentTxn.accessToken,
                       name: transaction.name,
@@ -428,7 +451,12 @@ cron.schedule("* * * * *", async () => {
                       accountname: recentTxn.accountname,
                       category: transaction.category[0],
                     };
-                    txncoll.update(newTxn, { $set: newTxn }, { upsert: true });
+                    try{
+											txncoll.insert(newTxn);
+                    }
+                    catch(err){
+                    	console.log(err.message);
+                    }
                   }
                 })
                 .catch((err) =>
