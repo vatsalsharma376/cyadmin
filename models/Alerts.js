@@ -8,7 +8,10 @@ const AlertsSchema = new Schema({
   cell: {
     type: String,
   },
-  amount: {
+  stamount: {
+    type: Number,
+  },
+  endamount: {
     type: Number,
   },
   message: {
