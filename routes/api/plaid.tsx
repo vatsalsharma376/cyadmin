@@ -148,10 +148,10 @@ router.post(
         const txnreq = {
           access_token: ACCESS_TOKEN,
           start_date: twoYearsAgo,
-      end_date: today,
-      options: {
-        count: 500,
-      },
+          end_date: today,
+          options: {
+            count: 500,
+          },
         };
         client
           .transactionsGet(txnreq)
@@ -255,12 +255,12 @@ router.post(
     client
       .transactionsGet(txnreq)
       .then((response) => {
-      	var alltranx = [];
+        var alltranx = [];
         //console.log(response); response.data.transactions = an array of transaction objects
         let transaction1 = response.data.transactions;
         for (var i = 0; i < transaction1.length; i++) {
           const curTxn = {
-          	_id: transaction1[i].transaction_id,
+            _id: transaction1[i].transaction_id,
             accountId: req.body.accId,
             accessToken: req.body.accessTkn,
             accountname: req.body.acName,
@@ -277,13 +277,11 @@ router.post(
           // }
         }
         // bulk insert all transactions at once
-        try{
-        	txncoll.insertMany(alltranx);
+        try {
+          txncoll.insertMany(alltranx);
+        } catch (err) {
+          console.log(err.message);
         }
-        catch(err){
-        	console.log(err.message);
-        }
-
       })
       .catch((err) => console.log(err));
   }
@@ -326,7 +324,8 @@ cron.schedule("* * * * *", async () => {
           var prevCount = -1;
 
           const curAccessToken = alert[ind].accessToken;
-          const AMOUNT = alert[ind].amount;
+          const STAMOUNT = alert[ind].stamount;
+          const ENDAMOUNT = alert[ind].endamount;
           const MSG = alert[ind].message;
           const EMAIL = alert[ind].email;
           const CELL = alert[ind].cell;
@@ -342,7 +341,7 @@ cron.schedule("* * * * *", async () => {
             .limit(50) // may have to change this limit if dailys txn>50
             .toArray()
             .then((rtxn) => {
-            	// rtxn contains transactions sorted by date
+              // rtxn contains transactions sorted by date
               recentTxn = rtxn[0];
               const txnreq = {
                 access_token: curAccessToken,
@@ -364,21 +363,18 @@ cron.schedule("* * * * *", async () => {
                     var curTXTBODY = TXTBODY;
                     var curMLBODY = MLBODY;
                     var transaction = transactions[counter];
-                    
 
                     // here we have to make a check if the transactions[counter] has already been seen before
                     var alreadySeen = false;
-                    for(var cnt = 0;cnt<40;cnt++){
-                    	if(rtxn[cnt]._id===transaction.transaction_id){
-
-                    		alreadySeen = true;
-                    		break;
-                    	}
+                    for (var cnt = 0; cnt < 40; cnt++) {
+                      if (rtxn[cnt]._id === transaction.transaction_id) {
+                        alreadySeen = true;
+                        break;
+                      }
                     }
-                    if(alreadySeen) break;
+                    if (alreadySeen) break;
 
-
-                    console.log(recentTxn,transaction);
+                    console.log(recentTxn, transaction);
                     console.log("E N D");
                     //console.log(transaction);
                     //console.log(transaction.amount);
@@ -408,7 +404,8 @@ cron.schedule("* * * * *", async () => {
                     );
 
                     if (
-                      Math.abs(transaction.amount) >= AMOUNT ||
+                      (Math.abs(transaction.amount) >= STAMOUNT &&
+                        Math.abs(transaction.amount) <= ENDAMOUNT) ||
                       transaction.name.indexOf(MSG) != -1
                     ) {
                       if (CELL !== undefined) {
@@ -451,11 +448,10 @@ cron.schedule("* * * * *", async () => {
                       accountname: recentTxn.accountname,
                       category: transaction.category[0],
                     };
-                    try{
-											txncoll.insert(newTxn);
-                    }
-                    catch(err){
-                    	console.log(err.message);
+                    try {
+                      txncoll.insert(newTxn);
+                    } catch (err) {
+                      console.log(err.message);
                     }
                   }
                 })
